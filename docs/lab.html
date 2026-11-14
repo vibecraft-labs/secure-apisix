@@ -20,4 +20,67 @@ helm show chart apisix/apisix --version "$CHART_VERSION"</pre><p class="footnote
         "backend.internal:80": 1
 #END</pre></article></div><p class="footnote">Mount files at verified APISIX paths; use versioned ConfigMaps and rollout checks.</p></section><section class="slide"><div class="eyebrow">08 / BARE METAL TRADITIONAL</div><h2>Ansible + Vault Agent</h2><div class='steps'><div><b>1</b> Verify OS, architecture, APISIX package checksum</div><div><b>2</b> Provision least-privilege service identity</div><div><b>3</b> Deliver credentials using Vault Agent</div><div><b>4</b> Template config, validate, controlled reload</div></div><pre>ansible apisix -i inventory.ini -m ping
 ansible-playbook -i inventory.ini site.yml --check --diff
-ansible-playbook -i inventory.ini site.yml</pre><p class="footnote">Do not expose secrets through Ansible diff, logs or backups.</p></section><section class="slide"><div class="eyebrow">09 / BARE METAL STANDALONE</div><h2>Atomic YAML deployment</h2><div class='diagram'><div>Git PR<br><small>Approved YAML</small></div><span>↓</span><div>Validate<br><small>Schema + policy</small></div><span>↓</span><div class='primary'>Atomic replace<br><small>apisix.yaml</small></div><span>↓</span><div>Smoke test<br><small>Rollback on failure</small></div></div><p class="footnote">Ensure APISIX runtime can read the actual deployed file path.</p></section><section class="slide"><div class="eyebrow">10 / TEST PLAN</div><h2>Prove the controls</h2><table><tr><th>Test</th><th>Expected</th></tr><tr><td>Public Admin API</td><td>Blocked</td></tr><tr><td>Missing / invalid admin key</td><td>Unauthorized</td></tr><tr><td>Untrusted etcd TLS client</td><td>Rejected</td></tr><tr><td>Vault policy violation</td><td>Denied</td></tr><tr><td>Bad configuration</td><td>Not promoted</td></tr><tr><td>Rollback / restore</td><td>Verified</td></tr></table><p class="footnote">Execute negative tests only within authorized staging scope.</p></section><section class="slide"><div class="eyebrow">11 / TROUBLESHOOTING</div><h2>Diagnose by layer</h2><div class='cards'><article><b>CrashLoop</b><p>Validate config, volume mounts, permissions, etcd reachability.</p></article><article><b>401 / 403</b><p>Check key mapping, Vault sync, Admin API allowlist.</p></article><article><b>502 / 503</b><p>Check upstream DNS, port, TLS, network policy.</p></article><article><b>Route not updating</b><p>Check YAML marker, file replacement and rollout.</p></article></div><p class="footnote">Keep authentication and TLS enabled while troubleshooting.</p></section><section class="slide"><div class="eyebrow">12 / GO-LIVE CHECKLIST</div><h2>Production readiness</h2><div class='checks'><label><input type='checkbox'> Verified release + chart compatibility</label><label><input type='checkbox'> Private Admin API and etcd</label><label><input type='checkbox'> Vault least-privilege + rotation</label><label><input type='checkbox'> NetworkPolicy / host firewall</label><label><input type='checkbox'> Config validation + approval</label><label><input type='checkbox'> TLS / mTLS test</label><label><input type='checkbox'> Logging + audit trail</label><label><input type='checkbox'> Rollback and restore drill</label></div><p class="footnote">A checked box is a review note, not proof of implementation.</p></section><section class="slide"><div class="eyebrow">13 / NEXT STEPS</div><h2>Decisions to unblock lab</h2><div class='cards'><article><b>Version</b><p>Confirm APISIX image/package and chart compatibility.</p></article><article><b>Environment</b><p>Specify K8s CNI, bare-metal OS and etcd endpoints.</p></article><article><b>Identity</b><p>Define Vault auth, secret ownership and rotation.</p></article><article><b>Operations</b><p>Agree test evidence, rollout, RPO/RTO and rollback owner.</p></article></div><p class='note'>Sources: <a href='https://apisix.apache.org/docs/apisix/'>APISIX docs</a> · <a href='https://github.com/apache/apisix-helm-chart'>Helm charts</a> · <a href='https://developer.hashicorp.com/vault/docs'>Vault docs</a></p><p class="footnote">End of review deck.</p></section></main><footer><button id="back">← Back</button><button id="next">Next →</button><span id="counter"></span><span style="margin-left:auto">← → / Space · F fullscreen · P print</span></footer><div id="bar"></div><script>let n=0;const s=[...document.querySelectorAll('.slide')];function show(i){n=Math.max(0,Math.min(s.length-1,i));s.forEach((x,j)=>x.classList.toggle('active',j===n));document.getElementById('counter').textContent=(n+1)+' / '+s.length;document.getElementById('bar').style.width=((n+1)/s.length*100)+'%';history.replaceState(null,'','#'+(n+1))}document.getElementById('back').onclick=()=>show(n-1);document.getElementById('next').onclick=()=>show(n+1);document.addEventListener('keydown',e=>{if(['ArrowRight','PageDown',' '].includes(e.key)&&!['INPUT','TEXTAREA'].includes(document.activeElement.tagName)){e.preventDefault();show(n+1)}else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();show(n-1)}else if(e.key.toLowerCase()==='f'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen?.()}else if(e.key.toLowerCase()==='p'){window.print()}});show((parseInt(location.hash.slice(1),10)||1)-1)</script></body></html>
+ansible-playbook -i inventory.ini site.yml</pre><p class="footnote">Do not expose secrets through Ansible diff, logs or backups.</p></section><section class="slide"><div class="eyebrow">09 / BARE METAL STANDALONE</div><h2>Atomic YAML deployment</h2><div class='diagram'><div>Git PR<br><small>Approved YAML</small></div><span>↓</span><div>Validate<br><small>Schema + policy</small></div><span>↓</span><div class='primary'>Atomic replace<br><small>apisix.yaml</small></div><span>↓</span><div>Smoke test<br><small>Rollback on failure</small></div></div><p class="footnote">Ensure APISIX runtime can read the actual deployed file path.</p></section><section class="slide"><div class="eyebrow">10 / TEST PLAN</div><h2>Prove the controls</h2><table><tr><th>Test</th><th>Expected</th></tr><tr><td>Public Admin API</td><td>Blocked</td></tr><tr><td>Missing / invalid admin key</td><td>Unauthorized</td></tr><tr><td>Untrusted etcd TLS client</td><td>Rejected</td></tr><tr><td>Vault policy violation</td><td>Denied</td></tr><tr><td>Bad configuration</td><td>Not promoted</td></tr><tr><td>Rollback / restore</td><td>Verified</td></tr></table><p class="footnote">Execute negative tests only within authorized staging scope.</p></section><section class="slide"><div class="eyebrow">11 / TROUBLESHOOTING</div><h2>Diagnose by layer</h2><div class='cards'><article><b>CrashLoop</b><p>Validate config, volume mounts, permissions, etcd reachability.</p></article><article><b>401 / 403</b><p>Check key mapping, Vault sync, Admin API allowlist.</p></article><article><b>502 / 503</b><p>Check upstream DNS, port, TLS, network policy.</p></article><article><b>Route not updating</b><p>Check YAML marker, file replacement and rollout.</p></article></div><p class="footnote">Keep authentication and TLS enabled while troubleshooting.</p></section><section class="slide"><div class="eyebrow">12 / GO-LIVE CHECKLIST</div><h2>Production readiness</h2><div class='checks'><label><input type='checkbox'> Verified release + chart compatibility</label><label><input type='checkbox'> Private Admin API and etcd</label><label><input type='checkbox'> Vault least-privilege + rotation</label><label><input type='checkbox'> NetworkPolicy / host firewall</label><label><input type='checkbox'> Config validation + approval</label><label><input type='checkbox'> TLS / mTLS test</label><label><input type='checkbox'> Logging + audit trail</label><label><input type='checkbox'> Rollback and restore drill</label></div><p class="footnote">A checked box is a review note, not proof of implementation.</p></section><section class="slide"><div class="eyebrow">13 / NEXT STEPS</div><h2>Decisions to unblock lab</h2><div class='cards'><article><b>Version</b><p>Confirm APISIX image/package and chart compatibility.</p></article><article><b>Environment</b><p>Specify K8s CNI, bare-metal OS and etcd endpoints.</p></article><article><b>Identity</b><p>Define Vault auth, secret ownership and rotation.</p></article><article><b>Operations</b><p>Agree test evidence, rollout, RPO/RTO and rollback owner.</p></article></div><p class='note'>Sources: <a href='https://apisix.apache.org/docs/apisix/'>APISIX docs</a> · <a href='https://github.com/apache/apisix-helm-chart'>Helm charts</a> · <a href='https://developer.hashicorp.com/vault/docs'>Vault docs</a></p><p class="footnote">End of review deck.</p></section><section class="slide"><div class="eyebrow">15 / CONFIG</div><h2>Traditional: APISIX config.yaml</h2><pre>deployment:
+  role: traditional
+  role_traditional:
+    config_provider: etcd
+  admin:
+    allow_admin:
+      - 127.0.0.1/32
+    admin_key:
+      - name: admin
+        key: ${{ADMIN_API_KEY}}
+        role: admin
+  etcd:
+    host:
+      - https://etcd.internal:2379</pre><p class="footnote">Schematic only: etcd TLS client credentials and environment substitution must be validated for the pinned APISIX release.</p></section><section class="slide"><div class="eyebrow">16 / CONFIG</div><h2>Standalone: config.yaml</h2><pre>apisix:
+  node_listen: 9080
+deployment:
+  role: data_plane
+  role_data_plane:
+    config_provider: yaml</pre><p class="footnote">Standalone file-driven does not use etcd for route configuration.</p></section><section class="slide"><div class="eyebrow">17 / ROUTES</div><h2>Standalone: apisix.yaml</h2><pre>routes:
+  - id: hello
+    uri: /hello
+    methods: [GET]
+    upstream:
+      type: roundrobin
+      nodes:
+        "backend.internal:8080": 1
+#END</pre><p class="footnote">Use an actual reachable backend. The trailing #END marker is required.</p></section><section class="slide"><div class="eyebrow">18 / VAULT</div><h2>Vault policy + KV v2</h2><pre># policy: apisix-read.hcl
+path "kv/data/apisix/lab/admin" {
+  capabilities = ["read"]
+}
+
+# operator CLI (authorized environment)
+vault secrets enable -path=kv kv-v2
+vault policy write apisix-read apisix-read.hcl
+vault kv get -mount=kv apisix/lab/admin</pre><p class="footnote">Do not commit real credentials or use a Vault root token for the gateway.</p></section><section class="slide"><div class="eyebrow">19 / HELM</div><h2>Helm render and validation</h2><pre>helm repo add apisix https://apache.github.io/apisix-helm-chart
+helm repo update
+helm search repo apisix/apisix --versions
+helm show values apisix/apisix --version "$CHART_VERSION" &gt; defaults.yaml
+helm template apisix apisix/apisix --version "$CHART_VERSION" -n apisix-lab -f values.yaml &gt; rendered.yaml
+kubectl apply --dry-run=server -f rendered.yaml</pre><p class="footnote">values.yaml keys must match the exact selected chart version; review rendered Admin API exposure and etcd TLS.</p></section><section class="slide"><div class="eyebrow">20 / ANSIBLE</div><h2>Ansible: validated config rollout</h2><pre>- hosts: apisix
+  become: true
+  tasks:
+    - name: Deploy APISIX config
+      ansible.builtin.template:
+        src: config.yaml.j2
+        dest: /etc/apisix/config.yaml
+        owner: root
+        group: root
+        mode: "0640"
+      no_log: true
+      notify: reload apisix
+  handlers:
+    - name: reload apisix
+      ansible.builtin.command: apisix test
+      changed_when: false</pre><p class="footnote">Example validation task only: add an explicit reload after a successful test, and verify the package's real config path and service permissions.</p></section><section class="slide"><div class="eyebrow">21 / TESTS</div><h2>Smoke and negative tests</h2><pre># gateway route
+curl -i http://127.0.0.1:9080/hello
+
+# verify the admin endpoint is not public
+# (run from an authorized test host)
+curl -i --max-time 5 https://admin.internal:9180/apisix/admin/routes
+
+# inspect Kubernetes rollout
+kubectl -n apisix-lab get pods,svc
+kubectl -n apisix-lab get events --sort-by=.lastTimestamp</pre><p class="footnote">Expected: route works; unauthorized Admin API requests are denied; no public Admin Service.</p></section></main><footer><button id="back">← Back</button><button id="next">Next →</button><span id="counter"></span><span style="margin-left:auto">← → / Space · F fullscreen · P print</span></footer><div id="bar"></div><script>let n=0;const s=[...document.querySelectorAll('.slide')];function show(i){n=Math.max(0,Math.min(s.length-1,i));s.forEach((x,j)=>x.classList.toggle('active',j===n));document.getElementById('counter').textContent=(n+1)+' / '+s.length;document.getElementById('bar').style.width=((n+1)/s.length*100)+'%';history.replaceState(null,'','#'+(n+1))}document.getElementById('back').onclick=()=>show(n-1);document.getElementById('next').onclick=()=>show(n+1);document.addEventListener('keydown',e=>{if(['ArrowRight','PageDown',' '].includes(e.key)&&!['INPUT','TEXTAREA'].includes(document.activeElement.tagName)){e.preventDefault();show(n+1)}else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();show(n-1)}else if(e.key.toLowerCase()==='f'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen?.()}else if(e.key.toLowerCase()==='p'){window.print()}});show((parseInt(location.hash.slice(1),10)||1)-1)</script></body></html>
