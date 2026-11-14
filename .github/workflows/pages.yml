@@ -18,9 +18,9 @@ concurrency:
 
 jobs:
   deploy:
-    # Requires an online, trusted Linux x64 self-hosted runner
-    # registered to this repository or its organization.
-    runs-on: [self-hosted, linux, x64]
+    # Organization runner: vavar-pi-local (Linux ARM64).
+    # The org runner group must allow access to this repository.
+    runs-on: [self-hosted, Linux, ARM64]
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
